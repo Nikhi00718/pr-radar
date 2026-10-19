@@ -44,6 +44,10 @@ export default async function LabPage() {
               <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0" />
               Hard gates, not penalties: AI policy banned, a linked open/merged PR, or an assignee set the score to 0.
             </div>
+            <div className="mt-3 rounded-xl border border-lime/20 bg-lime/[0.05] p-3 text-[12.5px] text-lime">
+              Your history: up to +12 on top of the formula for repos where you already have merged PRs
+              (1 → +5, 3 → +9, 5+ → +11). Prior merges in a repo were the strongest merge predictor in training.
+            </div>
           </SpotCard>
         </Reveal>
 

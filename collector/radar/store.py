@@ -17,7 +17,7 @@ from .config import DATA_DIR, Settings
 
 JSON_COLUMNS = {"topics", "labels", "tags", "reasons_json", "payload"}
 
-# table -> (columns, conflict key). Mirrors supabase/migrations/0001_init.sql.
+# table -> (columns, conflict key). Mirrors supabase/migrations/.
 TABLES: dict[str, tuple[list[str], list[str]]] = {
     "repos": (
         ["id", "full_name", "description", "language", "topics", "source", "created_at", "first_seen_at"],
@@ -66,6 +66,22 @@ TABLES: dict[str, tuple[list[str], list[str]]] = {
     "alerts": (["id", "target_id", "channel", "sent_at"], ["id"]),
     "feedback": (["id", "target_id", "action", "at"], ["id"]),
     "site_snapshot": (["id", "generated_at", "payload"], ["id"]),
+    "my_prs": (
+        [
+            "id",
+            "repo",
+            "number",
+            "title",
+            "url",
+            "state",
+            "is_draft",
+            "created_at",
+            "merged_at",
+            "closed_at",
+            "updated_seen",
+        ],
+        ["id"],
+    ),
 }
 
 

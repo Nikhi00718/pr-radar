@@ -132,6 +132,8 @@ class Settings:
     quiet_end_hour_ist: int = int(os.getenv("RADAR_QUIET_END", "7"))
     max_alerts_per_run: int = int(os.getenv("RADAR_MAX_ALERTS", "5"))
     site_url: str = os.getenv("RADAR_SITE_URL", "http://localhost:3000")
+    # whose PRs feed the My PRs page and the "you've merged here" boost
+    my_login: str = os.getenv("RADAR_MY_LOGIN", "Nikhi00718")
 
     @property
     def use_supabase(self) -> bool:

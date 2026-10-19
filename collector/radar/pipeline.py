@@ -8,6 +8,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Any
 
+from .collect_my_prs import merged_by_repo, my_prs_summary
 from .config import WEB_SNAPSHOT
 from .score import active_model_version, score_issue, score_news, score_repo
 from .store import Store
@@ -65,7 +66,7 @@ def _thin(points: list[tuple[str, int]], every_h: float = 3) -> list[tuple[str, 
     return out
 
 
-def score_and_publish(store: Store, now: datetime) -> dict[str, Any]:
+def score_and_publish(store: Store, now: datetime, my_login: str = "") -> dict[str, Any]:
     if sync_local_feedback(store):
         log.info("imported local feedback")
     repos = {r["id"]: r for r in store.select("repos")}
@@ -76,6 +77,8 @@ def score_and_publish(store: Store, now: datetime) -> dict[str, Any]:
         snaps_by_repo[s["repo_id"]].append(s)
     hidden = hidden_targets(store)
     feedback = store.select("feedback", order="at", desc=True, limit=500)
+    my_prs = store.select("my_prs")
+    my_merged = merged_by_repo(my_prs)
 
     MODEL_VERSION = active_model_version()
     score_rows: list[dict] = []
@@ -132,7 +135,9 @@ def score_and_publish(store: Store, now: datetime) -> dict[str, Any]:
         repo = repos.get(issue["repo_id"])
         if not repo:
             continue
-        score, reasons, parts = score_issue(issue, signals.get(issue["repo_id"]), now)
+        score, reasons, parts = score_issue(
+            issue, signals.get(issue["repo_id"]), now, my_merged=my_merged.get(repo["full_name"].lower(), 0)
+        )
         score_rows.append(
             {
                 "target_type": "issue",
@@ -196,11 +201,13 @@ def score_and_publish(store: Store, now: datetime) -> dict[str, Any]:
             "hot": sum(1 for o in opps if o["score"] >= 0.75),
             "news": len(news),
             "ai_banned_repos": sum(1 for s in signals.values() if s.get("ai_policy") == "banned"),
+            "boosted": sum(1 for o in opps if "my_merges" in o["parts"]),
         },
         "opportunities": opps[:300],
         "blocked": blocked[:80],
         "repos": repo_cards[:200],
         "news": news[:120],
+        "my_prs": my_prs_summary(my_prs, my_login),
         "feedback": [{"target_id": f["target_id"], "action": f["action"], "at": f["at"]} for f in feedback],
     }
     WEB_SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)

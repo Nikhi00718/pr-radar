@@ -1,7 +1,8 @@
 from datetime import UTC, datetime, timedelta
 
 from radar.collect_issues import has_live_linked_pr, is_blocked_label, label_bonus
-from radar.score import score_issue, star_velocity
+from radar.collect_my_prs import merged_by_repo, my_prs_summary
+from radar.score import MY_MERGES_MAX_BOOST, my_merges_boost, score_issue, star_velocity
 from radar.signals import classify_ai_policy, compute_signals
 
 NOW = datetime(2026, 10, 19, 12, tzinfo=UTC)
@@ -140,3 +141,49 @@ def test_blocked_labels():
     assert is_blocked_label(["bug", "Duplicate"])
     assert is_blocked_label(["status: won't fix"])
     assert not is_blocked_label(["bug", "good first issue"])
+
+
+def test_my_merges_boost_adds_score_and_reason_chip():
+    base, _, _ = score_issue(issue(), good_signals(), NOW, use_model=False)
+    boosted, reasons, parts = score_issue(issue(), good_signals(), NOW, use_model=False, my_merged=3)
+    assert reasons[0] == {"text": "you've merged 3 PRs here", "tone": "good"}
+    assert parts["my_merges"] == round(my_merges_boost(3), 3)
+    assert boosted == round(min(1.0, base + my_merges_boost(3)), 4) and boosted > base
+    assert score_issue(issue(), good_signals(), NOW, use_model=False, my_merged=1)[1][0]["text"] == (
+        "you've merged 1 PR here"
+    )
+    # monotone, saturating, and never more than the cap
+    assert 0 < my_merges_boost(1) < my_merges_boost(3) < my_merges_boost(10) <= MY_MERGES_MAX_BOOST
+    assert my_merges_boost(0) == 0
+
+
+def test_my_merges_boost_does_not_lift_gated_issues():
+    score, reasons, _ = score_issue(issue(assignee="bob"), good_signals(), NOW, use_model=False, my_merged=5)
+    assert score == 0 and reasons[0]["tone"] == "bad"
+
+
+def test_my_prs_summary_and_merged_by_repo():
+    created = NOW - timedelta(days=10)
+    pr = lambda repo, state, merge_h=None: {
+        "repo": repo,
+        "state": state,
+        "is_draft": 0,
+        "created_at": iso(created),
+        "merged_at": iso(created + timedelta(hours=merge_h)) if merge_h is not None else None,
+    }
+    prs = [
+        pr("Org/A", "MERGED", 10),
+        pr("org/a", "MERGED", 30),
+        pr("org/b", "MERGED", 50),
+        pr("org/b", "CLOSED"),
+        pr("org/c", "OPEN"),
+        pr("Me/own", "MERGED", 1),
+    ]
+    assert merged_by_repo(prs) == {"org/a": 2, "org/b": 1, "me/own": 1}
+    summary = my_prs_summary(prs, "me")
+    s = summary["stats"]
+    # PRs into the login's own repos are listed but kept out of the stats
+    assert len(summary["prs"]) == 6 and s["own_repo_prs"] == 1
+    assert (s["opened"], s["open"], s["merged"], s["closed"]) == (5, 1, 3, 1)
+    assert s["merge_rate"] == 0.75  # open PRs are excluded from the rate
+    assert s["median_merge_h"] == 30

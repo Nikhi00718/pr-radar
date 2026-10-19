@@ -69,6 +69,35 @@ export type NewsItem = {
   score: number;
 };
 
+export type MyPr = {
+  id: number;
+  repo: string;
+  number: number;
+  title: string;
+  url: string;
+  state: "OPEN" | "MERGED" | "CLOSED";
+  is_draft: boolean;
+  created_at: string;
+  merged_at: string | null;
+  closed_at: string | null;
+};
+
+export type MyPrs = {
+  login: string;
+  stats: {
+    opened: number;
+    open: number;
+    merged: number;
+    closed: number;
+    merge_rate: number | null;
+    median_merge_h: number | null;
+    repos: number;
+    own_repo_prs?: number;
+  };
+  repos: { repo: string; opened: number; merged: number }[];
+  prs: MyPr[];
+};
+
 export type FeedbackAction = "working" | "opened_pr" | "merged" | "ignored" | "hidden";
 export type FeedbackRow = { target_id: string; action: FeedbackAction; at: string };
 
@@ -83,11 +112,13 @@ export type Snapshot = {
     hot: number;
     news: number;
     ai_banned_repos: number;
+    boosted?: number;
   };
   opportunities: Opportunity[];
   blocked: Opportunity[];
   repos: RepoCard[];
   news: NewsItem[];
+  my_prs?: MyPrs;
   feedback: FeedbackRow[];
 };
 

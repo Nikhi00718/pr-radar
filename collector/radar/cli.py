@@ -8,6 +8,7 @@ import sys
 from datetime import timedelta
 
 from .collect_issues import collect_issues
+from .collect_my_prs import collect_my_prs
 from .collect_news import collect_hn, collect_releases
 from .collect_repos import collect_all, now_utc
 from .config import Settings
@@ -54,6 +55,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         ("issues", lambda: collect_issues(gh, store, tracked_for_issues(store, s.issue_repo_limit), now)),
         ("hn", lambda: collect_hn(store, s, now)),
         ("releases", lambda: collect_releases(store, now)),
+        ("my_prs", lambda: collect_my_prs(gh, store, s.my_login, now)),
     ]
     failed = []
     for name, fn in steps:
@@ -65,7 +67,7 @@ def cmd_run(args: argparse.Namespace) -> int:
             log.exception("step %s failed", name)
             failed.append(name)
 
-    payload = score_and_publish(store, now)
+    payload = score_and_publish(store, now, s.my_login)
     if not args.no_alerts:
         send_alerts(store, s, payload, now)
     log.info("done; graphql cost %d; failed steps: %s", gh.graphql_cost, failed or "none")
@@ -74,7 +76,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 
 def cmd_score(args: argparse.Namespace) -> int:
     s = Settings()
-    score_and_publish(open_store(s), now_utc())
+    score_and_publish(open_store(s), now_utc(), s.my_login)
     return 0
 
 
@@ -82,7 +84,7 @@ def cmd_digest(args: argparse.Namespace) -> int:
     s = Settings()
     store = open_store(s)
     now = now_utc()
-    payload = score_and_publish(store, now)
+    payload = score_and_publish(store, now, s.my_login)
     send_digest(store, s, payload, now)
     return 0
 
@@ -94,7 +96,7 @@ def main(argv: list[str] | None = None) -> int:
     r = sub.add_parser("run", help="collect, score, publish snapshot, send alerts")
     r.add_argument("--no-trending", action="store_true", help="skip scraping github.com/trending")
     r.add_argument("--no-alerts", action="store_true")
-    r.add_argument("--skip", nargs="*", default=[], choices=["repos", "signals", "issues", "hn", "releases"])
+    r.add_argument("--skip", nargs="*", default=[], choices=["repos", "signals", "issues", "hn", "releases", "my_prs"])
     r.set_defaults(fn=cmd_run)
     sub.add_parser("score", help="re-score stored data and publish the snapshot").set_defaults(fn=cmd_score)
     sub.add_parser("digest", help="send the daily Telegram digest").set_defaults(fn=cmd_digest)

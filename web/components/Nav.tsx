@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/opportunities", label: "Opportunities" },
   { href: "/trending", label: "Trending" },
   { href: "/news", label: "Signals" },
+  { href: "/my-prs", label: "My PRs" },
   { href: "/lab", label: "Model lab" },
 ];
 
