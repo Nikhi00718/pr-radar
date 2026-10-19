@@ -77,3 +77,14 @@ export function hash01(s: string): number {
 export function cn(...xs: (string | false | null | undefined)[]): string {
   return xs.filter(Boolean).join(" ");
 }
+
+/** Only http(s) links leave the site; anything else (javascript:, data:, vbscript:) becomes "#". */
+export function safeUrl(url: string | null | undefined): string {
+  if (!url) return "#";
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.href : "#";
+  } catch {
+    return "#";
+  }
+}

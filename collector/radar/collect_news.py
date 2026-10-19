@@ -45,14 +45,15 @@ def collect_hn(store: Store, s: Settings, now: datetime) -> int:
         for h in hits:
             title = h.get("title") or ""
             tags = match_tags(title)
-            if not tags:
+            url = h.get("url") or f"https://news.ycombinator.com/item?id={h['objectID']}"
+            if not tags or not url.startswith(("https://", "http://")):
                 continue
             rows.append(
                 {
                     "id": f"hn:{h['objectID']}",
                     "source": "hn",
                     "title": title,
-                    "url": h.get("url") or f"https://news.ycombinator.com/item?id={h['objectID']}",
+                    "url": url,
                     "points": h.get("points") or 0,
                     "comments": h.get("num_comments") or 0,
                     "published_at": h["created_at"],

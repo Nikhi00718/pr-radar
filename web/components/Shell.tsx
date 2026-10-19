@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, CornerDownLeft, FolderGit2, Hash, Search, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { scoreColor } from "@/lib/format";
+import { scoreColor, safeUrl } from "@/lib/format";
 import { FeedbackProvider } from "./Feedback";
 import Nav from "./Nav";
 import type { FeedbackRow } from "@/lib/types";
@@ -70,7 +70,10 @@ function Palette({ items, onClose }: { items: PaletteItem[]; onClose: () => void
   const go = useCallback((it: PaletteItem | undefined) => {
     if (!it) return;
     onClose();
-    if (it.external) window.open(it.href, "_blank", "noopener");
+    if (it.external) {
+      const href = safeUrl(it.href);
+      if (href !== "#") window.open(href, "_blank", "noopener,noreferrer");
+    }
     else router.push(it.href);
   }, [onClose, router]);
 

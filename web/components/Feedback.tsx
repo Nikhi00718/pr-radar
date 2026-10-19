@@ -43,10 +43,19 @@ export function FeedbackProvider({ initial, children }: { initial: FeedbackRow[]
 
   useEffect(() => {
     try {
-      readOwnerKey(); // consume a #key= unlock link as soon as the page loads
+      const ownerKey = readOwnerKey(); // also consumes a #key= unlock link
       const local = JSON.parse(localStorage.getItem(KEY) || "{}") as State;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- merge browser-local clicks after hydration
       setState((s) => ({ ...s, ...local }));
+      // the owner's synced history is private, so it is fetched only with the key
+      if (ownerKey) {
+        fetch("/api/feedback", { headers: { "x-radar-key": ownerKey }, cache: "no-store" })
+          .then((r) => (r.ok ? (r.json() as Promise<FeedbackRow[]>) : []))
+          .then((rows) => {
+            if (rows.length) setState((s) => ({ ...latest(rows), ...s }));
+          })
+          .catch(() => {});
+      }
     } catch {}
   }, []);
 

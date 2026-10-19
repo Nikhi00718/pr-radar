@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useState } from "react";
-import { hash01, scoreColor } from "@/lib/format";
+import { hash01, scoreColor, safeUrl } from "@/lib/format";
 import type { Opportunity } from "@/lib/types";
 
 const PERIOD = 6;
@@ -76,7 +76,7 @@ export default function RadarScope({ items }: { items: Opportunity[] }) {
         return (
           <motion.a
             key={o.id}
-            href={o.url}
+            href={safeUrl(o.url)}
             target="_blank"
             rel="noreferrer"
             initial={{ opacity: 0, scale: 0 }}

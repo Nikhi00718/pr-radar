@@ -24,6 +24,14 @@ REPO_FIELDS = """
 """
 
 
+# GitHub owner/repo names; anything else never reaches a GraphQL query string
+REPO_NAME = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})/[A-Za-z0-9_.-]{1,100}$")
+
+
+def valid_repo_name(full: str) -> bool:
+    return bool(REPO_NAME.match(full)) and ".." not in full
+
+
 def now_utc() -> datetime:
     return datetime.now(UTC).replace(second=0, microsecond=0)
 
@@ -77,12 +85,13 @@ def scrape_trending(language: str = "") -> list[str]:
         log.warning("trending scrape failed: %s", e)
         return []
     names = re.findall(r'<h2 class="h3 lh-condensed">\s*<a[^>]*href="/([^/"]+/[^/"]+)"', r.text)
-    return list(dict.fromkeys(names))[:25]
+    return [n for n in dict.fromkeys(names) if valid_repo_name(n)][:25]
 
 
 def collect_tracked(gh: GitHub, store: Store, names: list[str], source: str, taken_at: datetime) -> list[str]:
     """Snapshot named repos via batched GraphQL (20 repos per query)."""
     found: list[str] = []
+    names = [n for n in names if valid_repo_name(n)]
     for i in range(0, len(names), 20):
         chunk = names[i : i + 20]
         parts = []
