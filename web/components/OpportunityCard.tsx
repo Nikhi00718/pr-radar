@@ -93,6 +93,14 @@ export default function OpportunityCard({ o, rank }: { o: Opportunity; rank?: nu
                       color={k === "merge_rate" ? "var(--lime)" : k === "fast_response" ? "var(--cyan)" : "var(--violet)"}
                     />
                   ))}
+                  {o.parts.my_merges != null && (
+                    <Meter
+                      label="Your merges here (added on top)"
+                      value={o.parts.my_merges / 0.12}
+                      display={`+${Math.round(o.parts.my_merges * 100)}`}
+                      color="var(--lime)"
+                    />
+                  )}
                   {blocked && (
                     <div className="text-[12px] text-rose sm:col-span-2">Hard gate: {o.reasons[0]?.text}. The score is forced to 0.</div>
                   )}

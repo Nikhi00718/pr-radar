@@ -48,6 +48,16 @@ def fmt_hours(h: float) -> str:
     return f"~{round(h / 24)}d"
 
 
+# Author history is the strongest merge predictor in the training data (373k outsider PRs): prior merged PRs
+# in the same repo beat the repo's own merge rate. Added on top of the formula, saturating fast.
+MY_MERGES_MAX_BOOST = 0.12
+
+
+def my_merges_boost(n: int) -> float:
+    """Additive score boost for having merged `n` PRs in this repo: 1 -> +0.047, 3 -> +0.093, 5+ -> ~+0.11."""
+    return MY_MERGES_MAX_BOOST * (1 - math.exp(-n / 2)) if n > 0 else 0.0
+
+
 def signal_components(sig: dict[str, Any] | None) -> tuple[dict[str, float], list[dict[str, str]]]:
     """Repo-level parts of the score (shared by issue and repo scores)."""
     reasons: list[dict[str, str]] = []
@@ -106,7 +116,7 @@ def signal_components(sig: dict[str, Any] | None) -> tuple[dict[str, float], lis
 
 
 def score_issue(
-    issue: dict[str, Any], sig: dict[str, Any] | None, now: datetime, use_model: bool = True
+    issue: dict[str, Any], sig: dict[str, Any] | None, now: datetime, use_model: bool = True, my_merged: int = 0
 ) -> tuple[float, list[dict], dict]:
     parts, reasons = signal_components(sig)
 
@@ -133,6 +143,11 @@ def score_issue(
         parts["model_merge_prob"] = p
         score = 0.85 * p + 0.10 * parts["fresh_unclaimed"] + 0.05 * parts["label_bonus"]
         reasons.insert(1, reason(f"model: {round(p * 100)}% merge odds for a first PR", "good" if p >= 0.5 else "warn"))
+
+    if my_merged > 0:
+        parts["my_merges"] = my_merges_boost(my_merged)
+        score = min(1.0, score + parts["my_merges"])
+        reasons.insert(0, reason(f"you've merged {my_merged} PR{'s' if my_merged != 1 else ''} here", "good"))
 
     gate = None
     if sig and sig.get("ai_policy") == "banned":
