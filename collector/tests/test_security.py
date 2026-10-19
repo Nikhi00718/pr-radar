@@ -26,3 +26,26 @@ def test_formatted_alert_has_no_raw_markup_from_issue_data():
     }
     text = format_opportunity(o, "https://site")
     assert "<script>" not in text and 'onmouseover="x' not in text
+
+
+def test_purge_empties_my_prs(tmp_path):
+    from radar.store import SQLiteStore
+
+    store = SQLiteStore(tmp_path / "t.db")
+    store.upsert(
+        "my_prs",
+        [
+            {
+                "id": 1,
+                "repo": "a/b",
+                "number": 1,
+                "title": "t",
+                "url": "https://x",
+                "state": "MERGED",
+                "created_at": "2026-01-01T00:00:00+00:00",
+            }
+        ],
+    )
+    assert store.select("my_prs")
+    store.purge("my_prs")
+    assert store.select("my_prs") == []

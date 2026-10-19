@@ -99,6 +99,7 @@ class Store(Protocol):
         limit: int | None = None,
     ) -> list[dict[str, Any]]: ...
     def delete(self, table: str, *, eq: dict[str, Any]) -> None: ...
+    def purge(self, table: str) -> None: ...
 
 
 def _clean(table: str, row: dict[str, Any]) -> dict[str, Any]:
@@ -183,6 +184,12 @@ class SQLiteStore:
         self.conn.execute(f"DELETE FROM {table} WHERE " + " AND ".join(f"{k} = ?" for k in eq), list(eq.values()))
         self.conn.commit()
 
+    def purge(self, table):
+        if table not in TABLES:
+            raise ValueError(table)
+        self.conn.execute(f"DELETE FROM {table}")
+        self.conn.commit()
+
 
 class SupabaseStore:
     def __init__(self, url: str, key: str) -> None:
@@ -237,6 +244,13 @@ class SupabaseStore:
 
     def delete(self, table, *, eq):
         self.client.delete(f"/{table}", params={k: f"eq.{v}" for k, v in eq.items()}).raise_for_status()
+
+    def purge(self, table):
+        if table not in TABLES:
+            raise ValueError(table)
+        # PostgREST refuses an unfiltered DELETE; a condition true for every row is the documented way
+        key = TABLES[table][1][0]
+        self.client.delete(f"/{table}", params={key: "not.is.null"}).raise_for_status()
 
 
 def open_store(settings: Settings) -> Store:

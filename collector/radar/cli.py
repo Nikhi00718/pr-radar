@@ -90,6 +90,16 @@ def cmd_digest(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_purge_my_prs(args: argparse.Namespace) -> int:
+    """Delete every stored row of the owner's PR list (the table stays for the opt-in boost)."""
+    store = open_store(Settings())
+    before = len(store.select("my_prs"))
+    store.purge("my_prs")
+    after = len(store.select("my_prs"))
+    log.info("my_prs rows: %d before, %d after purge", before, after)
+    return 0 if after == 0 else 1
+
+
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     # httpx logs full request URLs, and the Telegram URL embeds the bot token; logs are public on a public repo
@@ -103,6 +113,7 @@ def main(argv: list[str] | None = None) -> int:
     r.set_defaults(fn=cmd_run)
     sub.add_parser("score", help="re-score stored data and publish the snapshot").set_defaults(fn=cmd_score)
     sub.add_parser("digest", help="send the daily Telegram digest").set_defaults(fn=cmd_digest)
+    sub.add_parser("purge-my-prs", help="delete the stored list of your own PRs").set_defaults(fn=cmd_purge_my_prs)
     args = p.parse_args(argv)
     return args.fn(args)
 
