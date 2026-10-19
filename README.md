@@ -7,7 +7,7 @@ Live: https://pr-radar-nikhil.vercel.app
 - **Collector** (`collector/`, Python 3.12 + uv): GitHub Search + GraphQL, Hacker News (Algolia), release feeds, optional `github.com/trending` scrape. Runs every 30 minutes on GitHub Actions.
 - **Score v1**: a transparent weighted formula over repo health signals, with the reasons stored next to every score.
 - **Website** (`web/`, Next.js 16 + Tailwind 4 + Motion): radar overview, ranked opportunities with feedback buttons, trending repos, signals feed, repo detail, model lab. Command palette on `Ctrl/⌘ K` or `/`.
-- **Alerts**: Telegram message for new items above the threshold (deduped, quiet hours) and a daily digest at 08:00 IST.
+- **Public Telegram bot**: anyone can open the bot and send `/start`. Each subscriber picks a minimum score (`/min 80`), languages (`/lang python rust`), and turns alerts or the 08:00 IST digest on or off; `/top` shows the best picks now and `/stop` unsubscribes. Only the chat id and those settings are stored.
 - **ML** (`collector/ml/`): LightGBM merge-probability model trained on the public ClickHouse `github_events` dataset, compared against score v1 on a time split. It replaces v1 only if it wins clearly.
 
 ## Run it locally (no accounts needed)
@@ -35,7 +35,8 @@ Without Supabase variables the collector stores everything in SQLite (`data/rada
    - repo variables: `RADAR_SITE_URL`, optionally `RADAR_ALERT_THRESHOLD`
 3. **Vercel**: import the repo with root directory `web/`, set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
    Then run `powershell -File scripts/set-feedback-key.ps1` once: it sets `FEEDBACK_KEY` and prints a private unlock link. Without it the deployed site refuses feedback writes (clicks stay in your browser only). See [SECURITY.md](SECURITY.md).
-4. Workflows: `collect` (every 30 min), `digest` (02:30 UTC = 08:00 IST), `retrain` (monthly), `ci` (push/PR).
+4. **Public bot** (optional): run `supabase/migrations/0003_subscribers.sql`, add a random `TELEGRAM_WEBHOOK_SECRET` to both GitHub secrets and Vercel, then run the `maintenance` workflow with `telegram-setup`. The webhook (`/api/telegram`) rejects requests without Telegram's secret header, answers private chats only, stores nothing for people who never sent `/start`, and rate-limits each chat to 12 commands a minute.
+5. Workflows: `collect` (every 30 min), `digest` (02:30 UTC = 08:00 IST), `retrain` (monthly), `ci` (push/PR).
 
 ## How the score works
 

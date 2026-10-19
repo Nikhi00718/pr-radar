@@ -132,6 +132,7 @@ class Settings:
     quiet_end_hour_ist: int = int(os.getenv("RADAR_QUIET_END", "7"))
     max_alerts_per_run: int = int(os.getenv("RADAR_MAX_ALERTS", "5"))
     site_url: str = os.getenv("RADAR_SITE_URL", "http://localhost:3000")
+    telegram_webhook_secret: str | None = field(default_factory=lambda: os.getenv("TELEGRAM_WEBHOOK_SECRET"))
     # Opt-in: a GitHub login whose merged PRs boost issues in those repos. Off by default so the
     # public site never reveals whose radar it is. Your PRs are never published either way.
     my_login: str = os.getenv("RADAR_MY_LOGIN", "")
@@ -142,4 +143,5 @@ class Settings:
 
     @property
     def use_telegram(self) -> bool:
-        return bool(self.telegram_token and self.telegram_chat_id)
+        # the owner's chat id is optional now: anyone can subscribe through the bot
+        return bool(self.telegram_token)

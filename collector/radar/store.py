@@ -15,7 +15,7 @@ import httpx
 
 from .config import DATA_DIR, Settings
 
-JSON_COLUMNS = {"topics", "labels", "tags", "reasons_json", "payload"}
+JSON_COLUMNS = {"topics", "labels", "tags", "reasons_json", "payload", "langs"}
 
 # table -> (columns, conflict key). Mirrors supabase/migrations/.
 TABLES: dict[str, tuple[list[str], list[str]]] = {
@@ -66,6 +66,21 @@ TABLES: dict[str, tuple[list[str], list[str]]] = {
     "alerts": (["id", "target_id", "channel", "sent_at"], ["id"]),
     "feedback": (["id", "target_id", "action", "at"], ["id"]),
     "site_snapshot": (["id", "generated_at", "payload"], ["id"]),
+    "subscribers": (
+        [
+            "chat_id",
+            "active",
+            "min_score",
+            "langs",
+            "alerts",
+            "digest",
+            "created_at",
+            "updated_at",
+            "cmd_window_start",
+            "cmd_count",
+        ],
+        ["chat_id"],
+    ),
     "my_prs": (
         [
             "id",
