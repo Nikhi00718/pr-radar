@@ -34,6 +34,7 @@ Without Supabase variables the collector stores everything in SQLite (`data/rada
    - `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` (create the bot with @BotFather, then read your chat id from `https://api.telegram.org/bot<TOKEN>/getUpdates` after messaging it)
    - repo variables: `RADAR_SITE_URL`, optionally `RADAR_ALERT_THRESHOLD`
 3. **Vercel**: import the repo with root directory `web/`, set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`.
+   Then run `powershell -File scripts/set-feedback-key.ps1` once: it sets `FEEDBACK_KEY` and prints a private unlock link. Without it the deployed site refuses feedback writes (clicks stay in your browser only). See [SECURITY.md](SECURITY.md).
 4. Workflows: `collect` (every 30 min), `digest` (02:30 UTC = 08:00 IST), `retrain` (monthly), `ci` (push/PR).
 
 ## How the score works

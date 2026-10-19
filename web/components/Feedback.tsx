@@ -12,6 +12,21 @@ type Ctx = {
 
 const FeedbackCtx = createContext<Ctx | null>(null);
 const KEY = "pr-radar:feedback";
+const OWNER_KEY = "pr-radar:owner-key";
+
+/** One-time unlock link: https://site/#key=<FEEDBACK_KEY>. The fragment never reaches the server or its logs. */
+function readOwnerKey(): string {
+  try {
+    const m = window.location.hash.match(/(?:^#|&)key=([^&]+)/);
+    if (m) {
+      localStorage.setItem(OWNER_KEY, decodeURIComponent(m[1]));
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    return localStorage.getItem(OWNER_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
 
 function latest(rows: FeedbackRow[]): State {
   const out: State = {};
@@ -28,6 +43,7 @@ export function FeedbackProvider({ initial, children }: { initial: FeedbackRow[]
 
   useEffect(() => {
     try {
+      readOwnerKey(); // consume a #key= unlock link as soon as the page loads
       const local = JSON.parse(localStorage.getItem(KEY) || "{}") as State;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- merge browser-local clicks after hydration
       setState((s) => ({ ...s, ...local }));
@@ -54,9 +70,13 @@ export function FeedbackProvider({ initial, children }: { initial: FeedbackRow[]
     setTimeout(() => setToast(null), 2200);
     fetch("/api/feedback", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "x-radar-key": readOwnerKey() },
       body: JSON.stringify({ target_id: target, action }),
-    }).catch(() => {});
+    })
+      .then((r) => {
+        if (r.status === 401) setToast("Saved on this device only (open your unlock link to sync)");
+      })
+      .catch(() => {});
   }, []);
 
   const value = useMemo(() => ({ state, set, toast }), [state, set, toast]);

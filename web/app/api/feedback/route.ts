@@ -1,10 +1,27 @@
+import { createHash, timingSafeEqual } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const ACTIONS = new Set(["working", "opened_pr", "merged", "ignored", "hidden", "cleared"]);
 const TARGET = /^(issue:\d+|repo:[\w.-]+\/[\w.-]+)$/;
 
+/** Writes need the owner's key. Deployed without FEEDBACK_KEY, writes are refused (fail closed). */
+function authorized(req: Request): boolean {
+  const expected = process.env.FEEDBACK_KEY?.trim();
+  if (!expected) return !process.env.VERCEL; // local dev only
+  const given = (req.headers.get("x-radar-key") ?? "").trim();
+  const a = createHash("sha256").update(given).digest();
+  const b = createHash("sha256").update(expected).digest();
+  return timingSafeEqual(a, b);
+}
+
 export async function POST(req: Request) {
+  if (!authorized(req)) {
+    return Response.json({ error: "feedback is saved on this device only" }, { status: 401 });
+  }
+  if (Number(req.headers.get("content-length") ?? 0) > 1024) {
+    return Response.json({ error: "too large" }, { status: 413 });
+  }
   let body: { target_id?: string; action?: string };
   try {
     body = await req.json();
@@ -25,7 +42,7 @@ export async function POST(req: Request) {
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
       body: JSON.stringify(row),
     });
-    if (!r.ok) return Response.json({ error: `supabase ${r.status}` }, { status: 502 });
+    if (!r.ok) return Response.json({ error: "store failed" }, { status: 502 });
     return Response.json({ ok: true, store: "supabase" });
   }
 
