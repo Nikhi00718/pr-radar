@@ -2,7 +2,7 @@
 
 Finds open-source issues where an outside PR is likely to get merged, explains why, and pings your phone.
 
-Live: https://pr-radar-nikhil.vercel.app
+Live: https://pr-radar-nikhil.vercel.app · Telegram alerts: https://t.me/nikhil_pr_radar_bot
 
 - **Collector** (`collector/`, Python 3.12 + uv): GitHub Search + GraphQL, Hacker News (Algolia), release feeds, optional `github.com/trending` scrape. Runs every 30 minutes on GitHub Actions.
 - **Score v1**: a transparent weighted formula over repo health signals, with the reasons stored next to every score.

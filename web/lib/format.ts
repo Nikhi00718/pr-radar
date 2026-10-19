@@ -88,3 +88,5 @@ export function safeUrl(url: string | null | undefined): string {
     return "#";
   }
 }
+
+export const TELEGRAM_BOT_URL = "https://t.me/nikhil_pr_radar_bot";

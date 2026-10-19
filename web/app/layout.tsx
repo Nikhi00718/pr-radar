@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import Background from "@/components/Background";
 import Shell, { type PaletteItem } from "@/components/Shell";
 import { getSnapshot } from "@/lib/data";
+import { TELEGRAM_BOT_URL } from "@/lib/format";
 import "./globals.css";
 
 const sans = Inter({ variable: "--font-sans-face", subsets: ["latin"] });
@@ -46,6 +47,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <main className="relative mx-auto w-full max-w-6xl px-4 pb-24 pt-28 sm:px-6">{children}</main>
           <footer className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] px-4 py-8 font-mono text-[11px] text-faint sm:px-6">
             <span>PR·RADAR — score {snap.model_version}</span>
+            <a href={TELEGRAM_BOT_URL} target="_blank" rel="noopener noreferrer" className="text-[#7fd0ff] transition hover:text-white">
+              Telegram alerts → @nikhil_pr_radar_bot
+            </a>
             <span>
               {snap.stats.repos} repos · {snap.stats.issues} issues · {snap.stats.news} signals tracked
             </span>

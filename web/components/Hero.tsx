@@ -1,8 +1,9 @@
 "use client";
 
 import { motion } from "motion/react";
-import { ArrowRight, Zap } from "lucide-react";
+import { ArrowRight, Send, Zap } from "lucide-react";
 import Link from "next/link";
+import { TELEGRAM_BOT_URL } from "@/lib/format";
 import type { Opportunity } from "@/lib/types";
 import RadarScope from "./Radar";
 import { CountUp } from "./ui";
@@ -82,6 +83,15 @@ export default function Hero({ items, stats }: {
           <Link href="/trending" className="rounded-xl border border-white/15 px-5 py-3 text-sm text-white/90 transition hover:border-white/30 hover:bg-white/[0.04]">
             Trending repos
           </Link>
+          <a
+            href={TELEGRAM_BOT_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-2 rounded-xl border border-[#2aabee]/40 bg-[#2aabee]/10 px-5 py-3 text-sm text-[#7fd0ff] transition hover:border-[#2aabee]/80 hover:bg-[#2aabee]/20 hover:text-white"
+          >
+            <Send className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+            Get alerts on Telegram
+          </a>
         </motion.div>
 
         <div className="mt-10 grid max-w-lg grid-cols-2 gap-3 sm:grid-cols-4">
