@@ -24,3 +24,6 @@ web/*.tsbuildinfo
 
 # supabase cli cache
 supabase/.temp/
+
+# private owner unlock link (contains FEEDBACK_KEY)
+data/unlock-link.txt

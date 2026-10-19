@@ -8,9 +8,9 @@ $key = ([Convert]::ToBase64String($bytes)).TrimEnd("=").Replace("+", "-").Replac
 
 Push-Location (Join-Path $PSScriptRoot "..\web")
 try {
-    npx -y vercel@latest env add FEEDBACK_KEY production --value $key --sensitive --force --yes
+    $null | npx -y vercel@latest env add FEEDBACK_KEY production --value $key --sensitive --force --yes
     # redeploy the current production build so it picks up the key
-    npx -y vercel@latest redeploy https://pr-radar-nikhil.vercel.app --target production | Out-Null
+    $null | npx -y vercel@latest redeploy https://pr-radar-nikhil.vercel.app --target production | Out-Null
 } finally {
     Pop-Location
 }
