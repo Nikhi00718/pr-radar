@@ -8,7 +8,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import Any
 
-from .collect_my_prs import merged_by_repo, my_prs_summary
+from .collect_my_prs import merged_by_repo
 from .config import WEB_SNAPSHOT
 from .score import active_model_version, score_issue, score_news, score_repo
 from .store import Store
@@ -76,8 +76,7 @@ def score_and_publish(store: Store, now: datetime, my_login: str = "") -> dict[s
     for s in store.select("repo_snapshots", gte={"taken_at": since}, order="taken_at"):
         snaps_by_repo[s["repo_id"]].append(s)
     hidden = hidden_targets(store)
-    my_prs = store.select("my_prs")
-    my_merged = merged_by_repo(my_prs)
+    my_merged = merged_by_repo(store.select("my_prs")) if my_login else {}
 
     MODEL_VERSION = active_model_version()
     score_rows: list[dict] = []
@@ -206,7 +205,6 @@ def score_and_publish(store: Store, now: datetime, my_login: str = "") -> dict[s
         "blocked": blocked[:80],
         "repos": repo_cards[:200],
         "news": news[:120],
-        "my_prs": my_prs_summary(my_prs, my_login),
         # the owner's feedback history is private; the site fetches it with the owner key
         "feedback": [],
     }

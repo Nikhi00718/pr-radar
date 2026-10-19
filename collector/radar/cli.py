@@ -55,8 +55,9 @@ def cmd_run(args: argparse.Namespace) -> int:
         ("issues", lambda: collect_issues(gh, store, tracked_for_issues(store, s.issue_repo_limit), now)),
         ("hn", lambda: collect_hn(store, s, now)),
         ("releases", lambda: collect_releases(store, now)),
-        ("my_prs", lambda: collect_my_prs(gh, store, s.my_login, now)),
     ]
+    if s.my_login:
+        steps.append(("my_prs", lambda: collect_my_prs(gh, store, s.my_login, now)))
     failed = []
     for name, fn in steps:
         if name in args.skip:

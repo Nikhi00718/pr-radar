@@ -45,8 +45,11 @@ export async function getSnapshot(): Promise<Snapshot> {
     console.error("snapshot load failed, falling back to local file", e);
     snap = (await fromFile()) ?? EMPTY;
   }
-  // The owner's feedback history is private: it is fetched client-side from /api/feedback with the owner key.
-  return { ...snap, feedback: [] };
+  // Private data never reaches the page: feedback is fetched client-side with the owner key, and an older
+  // snapshot that still carries the owner's PR list has it dropped here.
+  const { my_prs: _privatePrs, ...publicSnap } = snap as Snapshot & { my_prs?: unknown };
+  void _privatePrs;
+  return { ...publicSnap, feedback: [] };
 }
 
 export async function getModelReport(): Promise<ModelReport> {
