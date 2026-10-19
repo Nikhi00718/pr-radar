@@ -21,3 +21,6 @@ web/*.tsbuildinfo
 .env
 .env.*
 !.env.example
+
+# supabase cli cache
+supabase/.temp/
