@@ -91,6 +91,8 @@ def cmd_digest(args: argparse.Namespace) -> int:
 
 def main(argv: list[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    # httpx logs full request URLs, and the Telegram URL embeds the bot token; logs are public on a public repo
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     p = argparse.ArgumentParser(prog="radar")
     sub = p.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run", help="collect, score, publish snapshot, send alerts")
