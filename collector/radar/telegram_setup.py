@@ -64,3 +64,29 @@ def setup(s: Settings) -> int:
         info.get("last_error_message"),
     )
     return 0 if ok else 1
+
+
+def status(s: Settings) -> int:
+    """Read-only health check: webhook state from Telegram and subscriber counts (no chat ids printed)."""
+    from .store import open_store
+
+    if not s.telegram_token:
+        log.error("need TELEGRAM_BOT_TOKEN")
+        return 1
+    info = httpx.get(f"https://api.telegram.org/bot{s.telegram_token}/getWebhookInfo", timeout=20).json()
+    r = info.get("result", {})
+    log.info(
+        "webhook url=%s pending=%s last_error=%s last_error_date=%s",
+        r.get("url"),
+        r.get("pending_update_count"),
+        r.get("last_error_message"),
+        r.get("last_error_date"),
+    )
+    try:
+        subs = open_store(s).select("subscribers")
+    except Exception as e:  # table missing or no database configured
+        log.error("subscribers table unavailable: %s", type(e).__name__)
+        return 1
+    active = sum(1 for x in subs if x.get("active"))
+    log.info("subscribers: %d active, %d total", active, len(subs))
+    return 0 if not r.get("last_error_message") else 1

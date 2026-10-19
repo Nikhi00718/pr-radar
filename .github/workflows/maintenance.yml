@@ -10,6 +10,7 @@ on:
         options:
           - purge-my-prs
           - telegram-setup
+          - telegram-status
 
 permissions:
   contents: read

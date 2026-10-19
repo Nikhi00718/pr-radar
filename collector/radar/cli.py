@@ -100,6 +100,12 @@ def cmd_purge_my_prs(args: argparse.Namespace) -> int:
     return 0 if after == 0 else 1
 
 
+def cmd_telegram_status(args: argparse.Namespace) -> int:
+    from .telegram_setup import status
+
+    return status(Settings())
+
+
 def cmd_telegram_setup(args: argparse.Namespace) -> int:
     from .telegram_setup import setup
 
@@ -122,6 +128,7 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("telegram-setup", help="register the bot webhook and command menu").set_defaults(
         fn=cmd_telegram_setup
     )
+    sub.add_parser("telegram-status", help="webhook health and subscriber count").set_defaults(fn=cmd_telegram_status)
     sub.add_parser("purge-my-prs", help="delete the stored list of your own PRs").set_defaults(fn=cmd_purge_my_prs)
     args = p.parse_args(argv)
     return args.fn(args)
