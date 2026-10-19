@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight, MessageSquare, Package, Triangle } from "lucide-react";
 import { useMemo, useState } from "react";
-import { cn } from "@/lib/format";
+import { cn, safeUrl } from "@/lib/format";
 import type { NewsItem } from "@/lib/types";
 import { Ago, Empty } from "./ui";
 
@@ -19,7 +19,7 @@ export function NewsRow({ n, i }: { n: NewsItem; i: number }) {
   const isHn = n.source === "hn";
   return (
     <motion.a
-      href={n.url}
+      href={safeUrl(n.url)}
       target="_blank"
       rel="noreferrer"
       initial={{ opacity: 0, x: -16 }}
@@ -117,7 +117,7 @@ export function Ticker({ items }: { items: NewsItem[] }) {
     <div className="glass relative overflow-hidden rounded-2xl py-3 [mask-image:linear-gradient(90deg,transparent,black_8%,black_92%,transparent)]">
       <div className="marquee flex w-max gap-10 whitespace-nowrap">
         {[...row, ...row].map((n, i) => (
-          <a key={`${n.id}-${i}`} href={n.url} target="_blank" rel="noreferrer" className="group inline-flex items-center gap-2.5 text-[13px] text-muted hover:text-white">
+          <a key={`${n.id}-${i}`} href={safeUrl(n.url)} target="_blank" rel="noreferrer" className="group inline-flex items-center gap-2.5 text-[13px] text-muted hover:text-white">
             <span className={cn("h-1.5 w-1.5 rounded-full", n.source === "hn" ? "bg-amber shadow-[0_0_8px_var(--amber)]" : "bg-violet shadow-[0_0_8px_var(--violet)]")} />
             <span className="font-mono text-[10.5px] text-faint">{n.source === "hn" ? `${n.points}▲` : "REL"}</span>
             {n.title}

@@ -76,7 +76,6 @@ def score_and_publish(store: Store, now: datetime, my_login: str = "") -> dict[s
     for s in store.select("repo_snapshots", gte={"taken_at": since}, order="taken_at"):
         snaps_by_repo[s["repo_id"]].append(s)
     hidden = hidden_targets(store)
-    feedback = store.select("feedback", order="at", desc=True, limit=500)
     my_prs = store.select("my_prs")
     my_merged = merged_by_repo(my_prs)
 
@@ -208,7 +207,8 @@ def score_and_publish(store: Store, now: datetime, my_login: str = "") -> dict[s
         "repos": repo_cards[:200],
         "news": news[:120],
         "my_prs": my_prs_summary(my_prs, my_login),
-        "feedback": [{"target_id": f["target_id"], "action": f["action"], "at": f["at"]} for f in feedback],
+        # the owner's feedback history is private; the site fetches it with the owner key
+        "feedback": [],
     }
     WEB_SNAPSHOT.parent.mkdir(parents=True, exist_ok=True)
     WEB_SNAPSHOT.write_text(json.dumps(payload, default=str), encoding="utf-8")

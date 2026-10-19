@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight, GitMerge, GitPullRequest, GitPullRequestClosed, GitPullRequestDraft } from "lucide-react";
 import { useMemo, useState } from "react";
-import { cn, hours } from "@/lib/format";
+import { cn, hours, safeUrl } from "@/lib/format";
 import type { MyPr, MyPrs } from "@/lib/types";
 import { Ago, CountUp, Empty, SpotCard } from "./ui";
 
@@ -143,7 +143,7 @@ export function MyPrList({ prs }: { prs: MyPr[] }) {
               <motion.a
                 key={p.id}
                 layout
-                href={p.url}
+                href={safeUrl(p.url)}
                 target="_blank"
                 rel="noreferrer"
                 initial={{ opacity: 0, y: 8 }}

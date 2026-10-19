@@ -38,13 +38,19 @@ def send_telegram(s: Settings, text: str) -> bool:
 
 
 def _e(x: Any) -> str:
-    return html.escape(str(x), quote=False)
+    """Escape for Telegram HTML, including quotes so values can't break out of href="..."."""
+    return html.escape(str(x), quote=True)
+
+
+def _href(url: Any) -> str:
+    u = str(url or "")
+    return _e(u) if u.startswith(("https://", "http://")) else "#"
 
 
 def format_opportunity(o: dict[str, Any], site: str) -> str:
     reasons = " · ".join(r["text"] for r in o["reasons"][:3])
     return (
-        f'<b>{round(o["score"] * 100)}</b> · <a href="{_e(o["url"])}">{_e(o["repo"])}#{o["number"]}</a>\n'
+        f'<b>{round(o["score"] * 100)}</b> · <a href="{_href(o["url"])}">{_e(o["repo"])}#{o["number"]}</a>\n'
         f"{_e(o['title'])}\n<i>{_e(reasons)}</i>"
     )
 
@@ -97,8 +103,8 @@ def send_digest(store: Store, s: Settings, payload: dict[str, Any], now: datetim
         vel = f"+{r['velocity']:,.0f}★/day" if r.get("velocity") else f"{r['stars']:,}★"
         lines.append(f'• <a href="https://github.com/{_e(r["full_name"])}">{_e(r["full_name"])}</a> {vel}')
     lines += ["", "<b>News</b>"]
-    lines += [f'• <a href="{_e(n["url"])}">{_e(n["title"])}</a>' for n in news]
-    lines += ["", f'<a href="{_e(s.site_url)}">Open the radar →</a>']
+    lines += [f'• <a href="{_href(n["url"])}">{_e(n["title"])}</a>' for n in news]
+    lines += ["", f'<a href="{_href(s.site_url)}">Open the radar →</a>']
     if send_telegram(s, "\n".join(lines)):
         store.upsert(
             "alerts", [{"id": key, "target_id": f"digest:{day}", "channel": "telegram", "sent_at": now.isoformat()}]

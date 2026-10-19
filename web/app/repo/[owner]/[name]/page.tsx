@@ -11,10 +11,12 @@ import { getSnapshot } from "@/lib/data";
 import { compact, hours, langColor, pct } from "@/lib/format";
 
 type Params = { owner: string; name: string };
+const SEGMENT = /^[A-Za-z0-9_.-]{1,100}$/;
+const valid = (p: Params) => SEGMENT.test(p.owner) && SEGMENT.test(p.name);
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
-  const { owner, name } = await params;
-  return { title: `${owner}/${name}` };
+  const p = await params;
+  return { title: valid(p) ? `${p.owner}/${p.name}` : "Not found" };
 }
 
 export async function generateStaticParams(): Promise<Params[]> {
@@ -36,6 +38,7 @@ export default function RepoPage({ params }: { params: Promise<Params> }) {
 
 async function RepoDetail({ params }: { params: Promise<Params> }) {
   const { owner, name } = await params;
+  if (!valid({ owner, name })) notFound();
   const full = `${owner}/${name}`.toLowerCase();
   const snap = await getSnapshot();
   const r = snap.repos.find((x) => x.full_name.toLowerCase() === full);

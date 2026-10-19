@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown, EyeOff, GitPullRequestArrow, Hammer, MessageSquare, Undo2, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { cn, langColor } from "@/lib/format";
+import { cn, langColor, safeUrl } from "@/lib/format";
 import type { Opportunity } from "@/lib/types";
 import { useFeedback } from "./Feedback";
 import { Ago, Label, Meter, ReasonChip, ScoreRing, SpotCard } from "./ui";
@@ -58,7 +58,7 @@ export default function OpportunityCard({ o, rank }: { o: Opportunity; rank?: nu
           </div>
 
           <a
-            href={o.url}
+            href={safeUrl(o.url)}
             target="_blank"
             rel="noreferrer"
             className="block text-[15.5px] font-medium leading-snug text-white decoration-cyan/60 underline-offset-4 transition-colors hover:text-cyan hover:underline"

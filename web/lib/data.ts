@@ -20,17 +20,10 @@ async function fromSupabase(): Promise<Snapshot | null> {
   const key = process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return null;
   const headers = { apikey: key, Authorization: `Bearer ${key}` };
-  const [snapRes, fbRes] = await Promise.all([
-    fetch(`${url}/rest/v1/site_snapshot?select=payload&id=eq.1`, { headers }),
-    fetch(`${url}/rest/v1/feedback?select=target_id,action,at&order=at.desc&limit=1000`, { headers }),
-  ]);
+  const snapRes = await fetch(`${url}/rest/v1/site_snapshot?select=payload&id=eq.1`, { headers });
   if (!snapRes.ok) throw new Error(`supabase snapshot ${snapRes.status}`);
   const rows = (await snapRes.json()) as { payload: Snapshot }[];
-  if (!rows.length) return null;
-  const snap = rows[0].payload;
-  // feedback written since the last collector run should still show up
-  if (fbRes.ok) snap.feedback = await fbRes.json();
-  return snap;
+  return rows.length ? rows[0].payload : null;
 }
 
 async function fromFile(): Promise<Snapshot | null> {
@@ -45,12 +38,15 @@ async function fromFile(): Promise<Snapshot | null> {
 export async function getSnapshot(): Promise<Snapshot> {
   "use cache";
   cacheLife("minutes");
+  let snap: Snapshot;
   try {
-    return (await fromSupabase()) ?? (await fromFile()) ?? EMPTY;
+    snap = (await fromSupabase()) ?? (await fromFile()) ?? EMPTY;
   } catch (e) {
     console.error("snapshot load failed, falling back to local file", e);
-    return (await fromFile()) ?? EMPTY;
+    snap = (await fromFile()) ?? EMPTY;
   }
+  // The owner's feedback history is private: it is fetched client-side from /api/feedback with the owner key.
+  return { ...snap, feedback: [] };
 }
 
 export async function getModelReport(): Promise<ModelReport> {
