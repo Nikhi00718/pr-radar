@@ -84,7 +84,10 @@ def status(s: Settings) -> int:
     )
     try:
         subs = open_store(s).select("subscribers")
-    except Exception as e:  # table missing or no database configured
+    except httpx.HTTPStatusError as e:  # PostgREST explains itself (e.g. table not found); no secrets in it
+        log.error("subscribers table unavailable: %s %s", e.response.status_code, e.response.text[:300])
+        return 1
+    except Exception as e:
         log.error("subscribers table unavailable: %s", type(e).__name__)
         return 1
     active = sum(1 for x in subs if x.get("active"))
