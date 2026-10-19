@@ -1,0 +1,62 @@
+{
+  "trained_at": "2026-10-19T07:46:04+00:00",
+  "rows": 373227,
+  "test_rows": 106969,
+  "repos": 181,
+  "base_rate": 0.6093,
+  "auc_model": 0.66,
+  "auc_full": 0.7065,
+  "auc_v1": 0.6474,
+  "decision": "keep-v1",
+  "label": "merged within 30 days",
+  "split": "time split: train < 2025-04-01 <= test (PRs opened 2024-07..2025-08)",
+  "top_features": [
+    {
+      "name": "author_prev_merged",
+      "gain": 293638.9
+    },
+    {
+      "name": "merge_rate_shrunk",
+      "gain": 200305.0
+    },
+    {
+      "name": "open_pr_backlog",
+      "gain": 43172.8
+    },
+    {
+      "name": "author_prev_prs",
+      "gain": 39355.0
+    },
+    {
+      "name": "additions",
+      "gain": 38681.1
+    },
+    {
+      "name": "median_first_response_h",
+      "gain": 30522.3
+    },
+    {
+      "name": "outside_merged_90d",
+      "gain": 25251.4
+    },
+    {
+      "name": "body_len",
+      "gain": 23868.7
+    },
+    {
+      "name": "title_len",
+      "gain": 23737.7
+    },
+    {
+      "name": "merges_30d",
+      "gain": 19987.8
+    }
+  ],
+  "live_features": [
+    "merge_rate_live",
+    "outside_closed_live",
+    "median_first_response_h",
+    "backlog_live",
+    "days_since_merge"
+  ]
+}

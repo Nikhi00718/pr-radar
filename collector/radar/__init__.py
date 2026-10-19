@@ -1,0 +1,1 @@
+"""PR Radar collector package."""

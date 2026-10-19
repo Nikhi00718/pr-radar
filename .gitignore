@@ -1,0 +1,23 @@
+# python
+collector/.venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+.pytest_cache/
+
+# local data (Supabase holds production data)
+data/radar.db
+data/*.log
+data/ml/
+web/data/feedback.local.json
+
+# web
+web/node_modules/
+web/.next/
+web/next-env.d.ts
+web/*.tsbuildinfo
+
+# secrets
+.env
+.env.*
+!.env.example
