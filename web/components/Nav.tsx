@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { Command, Radar } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useSelectedLayoutSegment } from "next/navigation";
 import { Ago } from "./ui";
 import { useFeedback } from "./Feedback";
 
@@ -16,8 +16,10 @@ const LINKS = [
 ];
 
 export default function Nav({ generatedAt, onPalette }: { generatedAt: string; onPalette: () => void }) {
-  const path = usePathname();
-  const active = LINKS.findLast((l) => (l.href === "/" ? path === "/" : path.startsWith(l.href)))?.href;
+  // The route segment, not usePathname(): when Vercel regenerates the "/" prerender the server-side pathname is not
+  // "/", so the server HTML had no active pill while the client drew one (React #418 on hydration).
+  const segment = useSelectedLayoutSegment();
+  const active = LINKS.find((l) => l.href === (segment === null ? "/" : `/${segment}`))?.href;
   const { toast } = useFeedback();
   const fresh = Date.parse(generatedAt) > 0;
 
