@@ -100,6 +100,12 @@ def cmd_purge_my_prs(args: argparse.Namespace) -> int:
     return 0 if after == 0 else 1
 
 
+def cmd_db_status(args: argparse.Namespace) -> int:
+    from .telegram_setup import db_status
+
+    return db_status(Settings())
+
+
 def cmd_telegram_status(args: argparse.Namespace) -> int:
     from .telegram_setup import status
 
@@ -129,6 +135,7 @@ def main(argv: list[str] | None = None) -> int:
         fn=cmd_telegram_setup
     )
     sub.add_parser("telegram-status", help="webhook health and subscriber count").set_defaults(fn=cmd_telegram_status)
+    sub.add_parser("db-status", help="which Supabase project and tables the API exposes").set_defaults(fn=cmd_db_status)
     sub.add_parser("purge-my-prs", help="delete the stored list of your own PRs").set_defaults(fn=cmd_purge_my_prs)
     args = p.parse_args(argv)
     return args.fn(args)

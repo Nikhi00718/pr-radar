@@ -11,6 +11,7 @@ on:
           - purge-my-prs
           - telegram-setup
           - telegram-status
+          - db-status
 
 permissions:
   contents: read

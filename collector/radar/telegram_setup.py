@@ -93,3 +93,25 @@ def status(s: Settings) -> int:
     active = sum(1 for x in subs if x.get("active"))
     log.info("subscribers: %d active, %d total", active, len(subs))
     return 0 if not r.get("last_error_message") else 1
+
+
+def db_status(s: Settings) -> int:
+    """Which Supabase project the collector talks to and which tables its API exposes (names only)."""
+    from urllib.parse import urlparse
+
+    if not (s.supabase_url and s.supabase_key):
+        log.error("no SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY")
+        return 1
+    host = urlparse(s.supabase_url).hostname or "?"
+    log.info("supabase project: %s", host.split(".")[0])
+    r = httpx.get(
+        s.supabase_url.rstrip("/") + "/rest/v1/",
+        headers={"apikey": s.supabase_key, "Authorization": f"Bearer {s.supabase_key}"},
+        timeout=20,
+    )
+    if r.status_code != 200:
+        log.error("API root: %s %s", r.status_code, r.text[:200])
+        return 1
+    tables = sorted(p.strip("/") for p in (r.json().get("paths") or {}) if p.strip("/") and "/" not in p.strip("/"))
+    log.info("tables exposed by the API: %s", ", ".join(tables) or "(none)")
+    return 0 if "subscribers" in tables else 1
