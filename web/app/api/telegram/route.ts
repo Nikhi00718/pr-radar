@@ -104,6 +104,11 @@ export async function POST(req: Request) {
     });
   } catch (e) {
     console.error("telegram webhook failed", e instanceof Error ? e.message : e);
-    return ok(); // never make Telegram retry-loop on our errors
+    // tell the person instead of going silent; still a 200 so Telegram doesn't retry-loop
+    return Response.json({
+      method: "sendMessage",
+      chat_id: chatId,
+      text: "PR Radar is having a database problem right now, so I couldn't save that. Please try again in a few minutes.",
+    });
   }
 }
