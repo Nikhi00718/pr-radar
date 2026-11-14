@@ -6,8 +6,11 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     groups:
+      # Majors open as separate PRs, so one breaking major (TypeScript 7 broke
+      # typescript-eslint) does not hold back the minor and patch updates.
       web:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
   - package-ecosystem: uv
     directory: /collector
     schedule:
@@ -16,6 +19,7 @@ updates:
     groups:
       collector:
         patterns: ["*"]
+        update-types: ["minor", "patch"]
   - package-ecosystem: github-actions
     directory: /
     schedule:
